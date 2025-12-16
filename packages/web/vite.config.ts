@@ -88,7 +88,7 @@ export default defineConfig(({ mode }) => {
         "Referrer-Policy": "strict-origin-when-cross-origin",
       },
       // Proxy plugin manager API (only when feature is enabled)
-      proxy: env.VITE_MESHING_AROUND_ENABLED
+      proxy: env.VITE_PLUGINS_ENABLED
         ? {
             "/api/plugins": {
               target: "http://localhost:8000",

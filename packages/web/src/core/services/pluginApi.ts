@@ -1,10 +1,10 @@
 /**
  * API client for an optional plugin management backend.
- * Uses feature flag VITE_MESHING_AROUND_ENABLED to stay disabled by default.
+ * Uses feature flag VITE_PLUGINS_ENABLED to stay disabled by default.
  */
 
 const API_BASE_URL =
-  (import.meta as { env?: Record<string, string> }).env?.VITE_MESHING_AROUND_API_URL || "";
+  (import.meta as { env?: Record<string, string> }).env?.VITE_PLUGINS_API_URL || "";
 
 export interface PluginInfo {
   id: string;

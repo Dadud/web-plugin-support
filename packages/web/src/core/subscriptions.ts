@@ -70,8 +70,7 @@ export const subscribeAll = (
     const pluginEnabled =
       typeof import.meta !== "undefined" &&
       import.meta.env &&
-      (import.meta.env as { VITE_MESHING_AROUND_ENABLED?: string })
-        .VITE_MESHING_AROUND_ENABLED === "true";
+      (import.meta.env as { VITE_PLUGINS_ENABLED?: string }).VITE_PLUGINS_ENABLED === "true";
 
     if (pluginEnabled) {
       try {
@@ -113,11 +112,10 @@ export const subscribeAll = (
     // Use dynamic import to avoid loading plugin code when feature is disabled
     if (message.from !== myNodeNum && message.message) {
       // Check if feature is enabled via environment variable
-      const pluginEnabled = 
-        typeof import.meta !== "undefined" &&
-        import.meta.env &&
-        (import.meta.env as { VITE_MESHING_AROUND_ENABLED?: string })
-          .VITE_MESHING_AROUND_ENABLED === "true";
+    const pluginEnabled =
+      typeof import.meta !== "undefined" &&
+      import.meta.env &&
+      (import.meta.env as { VITE_PLUGINS_ENABLED?: string }).VITE_PLUGINS_ENABLED === "true";
       
       if (pluginEnabled) {
         try {
