@@ -17,6 +17,10 @@ class PluginRegistry {
     this.plugins.set(id, factory);
   }
 
+  has(id: string): boolean {
+    return this.plugins.has(id);
+  }
+
   /**
    * Get all registered plugin factories
    */

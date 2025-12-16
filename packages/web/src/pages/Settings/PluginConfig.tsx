@@ -4,6 +4,7 @@
 
 import { usePlugins } from "@core/hooks/usePlugins.ts";
 import { pluginStorage } from "@core/plugins";
+import { loadRemotePlugin, setEnabledRemote, getEnabledRemote } from "@core/services/pluginCatalog.ts";
 import { useFeatureFlag } from "@core/hooks/useFeatureFlags.ts";
 import { Card, CardContent, CardHeader, CardTitle } from "@components/UI/Card.tsx";
 import { Switch } from "@components/UI/Switch.tsx";
@@ -24,7 +25,8 @@ interface PluginConfigProps {
 
 export const PluginConfig = ({ onFormInit }: PluginConfigProps) => {
   const pluginsEnabled = useFeatureFlag("pluginsEnabled");
-  const { plugins, loading, error, updatePlugin, getPluginConfig } = usePlugins();
+  const { plugins, manifest, loading, error, updatePlugin, getPluginConfig, manifestUrl, refreshPlugins } =
+    usePlugins();
   const navigate = useNavigate();
   const [selectedPlugin, setSelectedPlugin] = useState<string | null>(null);
   const [checkins, setCheckins] = useState<
@@ -90,6 +92,7 @@ export const PluginConfig = ({ onFormInit }: PluginConfigProps) => {
       ts: string;
     }>
   >([]);
+  const [remoteLoading, setRemoteLoading] = useState(false);
 
   const loadCheckins = useCallback(async () => {
     const data =
@@ -264,6 +267,16 @@ export const PluginConfig = ({ onFormInit }: PluginConfigProps) => {
     loadWeatherConfig,
     loadAlerts,
   ]);
+
+  const setEnabledRemoteList = useCallback(async (id: string, enable: boolean) => {
+    const current = (await getEnabledRemote()) || [];
+    const setList = new Set(current);
+    if (enable) setList.add(id);
+    else setList.delete(id);
+    const next = Array.from(setList);
+    await setEnabledRemote(next);
+    return next;
+  }, []);
   const formatTime = (timestamp: string) => {
     if (!timestamp) return "";
     const d = new Date(timestamp);
