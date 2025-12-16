@@ -6,7 +6,7 @@ import {
   MessageType,
   type NodeDB,
 } from "@core/stores";
-import { type MeshDevice, Protobuf } from "@meshtastic/core";
+import { type MeshDevice, Protobuf, Types } from "@meshtastic/core";
 export const subscribeAll = (
   device: Device,
   connection: MeshDevice,
@@ -63,8 +63,27 @@ export const subscribeAll = (
     nodeDB.addUser(user);
   });
 
-  connection.events.onPositionPacket.subscribe((position) => {
+  connection.events.onPositionPacket.subscribe(async (position) => {
     nodeDB.addPosition(position);
+
+    // If plugins are enabled, pass position to plugin handler
+    const pluginEnabled =
+      typeof import.meta !== "undefined" &&
+      import.meta.env &&
+      (import.meta.env as { VITE_MESHING_AROUND_ENABLED?: string })
+        .VITE_MESHING_AROUND_ENABLED === "true";
+
+    if (pluginEnabled) {
+      try {
+        const { handlePluginPosition } = await import("@core/plugins/messageHandler");
+        const fromNodeId = (position as any)?.from ?? (position as any)?.num ?? 0;
+        await handlePluginPosition(position, fromNodeId, myNodeNum, device, connection, nodeDB);
+      } catch (error) {
+        if (error instanceof Error && !error.message.includes("Cannot find module")) {
+          console.error("[Subscriptions] Error handling plugin position:", error);
+        }
+      }
+    }
   });
 
   // NOTE: Node handling is managed by the nodeDB
@@ -84,11 +103,43 @@ export const subscribeAll = (
     device.setModuleConfig(moduleConfig);
   });
 
-  connection.events.onMessagePacket.subscribe((messagePacket) => {
+  connection.events.onMessagePacket.subscribe(async (messagePacket) => {
     // incoming and outgoing messages are handled by this event listener
     const dto = new PacketToMessageDTO(messagePacket, myNodeNum);
     const message = dto.toMessage();
     messageStore.saveMessage(message);
+
+    // Handle plugin messages for incoming messages only (if feature is enabled)
+    // Use dynamic import to avoid loading plugin code when feature is disabled
+    if (message.from !== myNodeNum && message.message) {
+      // Check if feature is enabled via environment variable
+      const pluginEnabled = 
+        typeof import.meta !== "undefined" &&
+        import.meta.env &&
+        (import.meta.env as { VITE_MESHING_AROUND_ENABLED?: string })
+          .VITE_MESHING_AROUND_ENABLED === "true";
+      
+      if (pluginEnabled) {
+        try {
+          const { handlePluginMessage } = await import("@core/plugins/messageHandler");
+          await handlePluginMessage(
+            message.message,
+            message.from,
+            message.to,
+            myNodeNum,
+            device,
+            connection,
+            nodeDB,
+          );
+        } catch (error) {
+          // Silently fail if plugin system isn't available
+          // This allows core functionality to work without plugins
+          if (error instanceof Error && !error.message.includes("Cannot find module")) {
+            console.error("[Subscriptions] Error handling plugin message:", error);
+          }
+        }
+      }
+    }
 
     if (message.type === MessageType.Direct) {
       if (message.to === myNodeNum) {

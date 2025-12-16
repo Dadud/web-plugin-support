@@ -1,10 +1,11 @@
-import { deviceRoute, moduleRoute, radioRoute } from "@app/routes";
+import { deviceRoute, moduleRoute, radioRoute, pluginRoute } from "@app/routes";
 import { toBinary } from "@bufbuild/protobuf";
 import { PageLayout } from "@components/PageLayout.tsx";
 import { Sidebar } from "@components/Sidebar.tsx";
 import { SidebarButton } from "@components/UI/Sidebar/SidebarButton.tsx";
 import { SidebarSection } from "@components/UI/Sidebar/SidebarSection.tsx";
 import { useToast } from "@core/hooks/useToast.ts";
+import { useFeatureFlag } from "@core/hooks/useFeatureFlags.ts";
 import { useDevice } from "@core/stores";
 import { cn } from "@core/utils/cn.ts";
 import { Protobuf } from "@meshtastic/core";
@@ -18,11 +19,13 @@ import {
   RouterIcon,
   SaveIcon,
   SaveOff,
+  PuzzleIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FieldValues, UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { RadioConfig } from "./RadioConfig.tsx";
+import { PluginConfig } from "./PluginConfig.tsx";
 
 const ConfigPage = () => {
   const {
@@ -54,9 +57,10 @@ const ConfigPage = () => {
   const moduleConfigChangeCount = getModuleConfigChangeCount();
   const channelChangeCount = getChannelChangeCount();
   const adminMessageChangeCount = getAdminMessageChangeCount();
+  const meshingAroundEnabled = useFeatureFlag("meshingAroundEnabled");
 
-  const sections = useMemo(
-    () => [
+  const sections = useMemo(() => {
+    const baseSections = [
       {
         key: "radio",
         route: radioRoute,
@@ -81,9 +85,28 @@ const ConfigPage = () => {
         changeCount: channelChangeCount,
         component: ModuleConfig,
       },
-    ],
-    [t, configChangeCount, moduleConfigChangeCount, channelChangeCount],
-  );
+    ];
+
+    // Conditionally add plugins section if feature is enabled
+    if (meshingAroundEnabled) {
+      baseSections.push({
+        key: "plugins",
+        route: pluginRoute,
+        label: "Plugins",
+        icon: PuzzleIcon,
+        changeCount: 0,
+        component: PluginConfig,
+      });
+    }
+
+    return baseSections;
+  }, [
+    t,
+    configChangeCount,
+    moduleConfigChangeCount,
+    channelChangeCount,
+    meshingAroundEnabled,
+  ]);
 
   const activeSection =
     sections.find((section) =>

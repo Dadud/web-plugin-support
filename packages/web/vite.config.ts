@@ -87,6 +87,19 @@ export default defineConfig(({ mode }) => {
           "max-age=63072000; includeSubDomains; preload",
         "Referrer-Policy": "strict-origin-when-cross-origin",
       },
+      // Proxy plugin manager API (only when feature is enabled)
+      proxy: env.VITE_MESHING_AROUND_ENABLED
+        ? {
+            "/api/plugins": {
+              target: "http://localhost:8000",
+              changeOrigin: true,
+            },
+            "/api/config": {
+              target: "http://localhost:8000",
+              changeOrigin: true,
+            },
+          }
+        : undefined,
     },
   };
 });

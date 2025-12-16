@@ -6,6 +6,7 @@ export const FLAG_ENV = {
   persistMessages: "VITE_PERSIST_MESSAGES",
   persistDevices: "VITE_PERSIST_DEVICES",
   persistApp: "VITE_PERSIST_APP",
+  meshingAroundEnabled: "VITE_MESHING_AROUND_ENABLED",
 } as const;
 
 export type FlagKey = keyof typeof FLAG_ENV;

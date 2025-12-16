@@ -139,6 +139,12 @@ export const moduleRoute = createRoute({
   component: ConfigPage,
 });
 
+export const pluginRoute = createRoute({
+  getParentRoute: () => settingsRoute,
+  path: "plugins",
+  component: ConfigPage,
+});
+
 const nodesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/nodes",
@@ -163,7 +169,7 @@ const routeTree = rootRoute.addChildren([
   messagesWithParamsRoute,
   mapRoute,
   mapWithParamsRoute,
-  settingsRoute.addChildren([radioRoute, deviceRoute, moduleRoute]),
+  settingsRoute.addChildren([radioRoute, deviceRoute, moduleRoute, pluginRoute]),
   nodesRoute,
   dialogWithParamsRoute,
   connectionsRoute,
