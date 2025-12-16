@@ -23,7 +23,7 @@ interface PluginConfigProps {
 }
 
 export const PluginConfig = ({ onFormInit }: PluginConfigProps) => {
-  const meshingAroundEnabled = useFeatureFlag("meshingAroundEnabled");
+  const pluginsEnabled = useFeatureFlag("pluginsEnabled");
   const { plugins, loading, error, updatePlugin, getPluginConfig } = usePlugins();
   const navigate = useNavigate();
   const [selectedPlugin, setSelectedPlugin] = useState<string | null>(null);
@@ -230,7 +230,7 @@ export const PluginConfig = ({ onFormInit }: PluginConfigProps) => {
   }, []);
 
   // Don't render if feature is disabled
-  if (!meshingAroundEnabled) {
+  if (!pluginsEnabled) {
     return null;
   }
 

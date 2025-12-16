@@ -57,7 +57,7 @@ const ConfigPage = () => {
   const moduleConfigChangeCount = getModuleConfigChangeCount();
   const channelChangeCount = getChannelChangeCount();
   const adminMessageChangeCount = getAdminMessageChangeCount();
-  const meshingAroundEnabled = useFeatureFlag("meshingAroundEnabled");
+  const pluginsEnabled = useFeatureFlag("pluginsEnabled");
 
   const sections = useMemo(() => {
     const baseSections = [
@@ -88,7 +88,7 @@ const ConfigPage = () => {
     ];
 
     // Conditionally add plugins section if feature is enabled
-    if (meshingAroundEnabled) {
+    if (pluginsEnabled) {
       baseSections.push({
         key: "plugins",
         route: pluginRoute,
@@ -105,7 +105,7 @@ const ConfigPage = () => {
     configChangeCount,
     moduleConfigChangeCount,
     channelChangeCount,
-    meshingAroundEnabled,
+    pluginsEnabled,
   ]);
 
   const activeSection =

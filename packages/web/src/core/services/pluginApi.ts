@@ -1,9 +1,8 @@
 /**
- * API client for the optional plugin management backend.
- * This service is optional and only used when VITE_MESHING_AROUND_ENABLED is true.
+ * API client for an optional plugin management backend.
+ * Uses feature flag VITE_MESHING_AROUND_ENABLED to stay disabled by default.
  */
 
-// Use relative URL when proxied through Vite, or absolute URL if configured
 const API_BASE_URL =
   (import.meta as { env?: Record<string, string> }).env?.VITE_MESHING_AROUND_API_URL || "";
 
@@ -28,21 +27,19 @@ export interface PluginStatus {
   settings: Record<string, unknown>;
 }
 
-// BotStatus removed - this service only manages config, not bot process
-
 export interface PluginConfigUpdate {
   enabled: boolean;
   settings?: Record<string, unknown>;
 }
 
-class MeshingAroundApiError extends Error {
+export class PluginApiError extends Error {
   constructor(
     message: string,
     public status?: number,
     public response?: Response,
   ) {
     super(message);
-    this.name = "MeshingAroundApiError";
+    this.name = "PluginApiError";
   }
 }
 
@@ -60,7 +57,7 @@ async function fetchApi<T>(
     });
 
     if (!response.ok) {
-      throw new MeshingAroundApiError(
+      throw new PluginApiError(
         `API request failed: ${response.statusText}`,
         response.status,
         response,
@@ -69,34 +66,24 @@ async function fetchApi<T>(
 
     return response.json();
   } catch (error) {
-    if (error instanceof MeshingAroundApiError) {
+    if (error instanceof PluginApiError) {
       throw error;
     }
-    // Network error or CORS issue
-    throw new MeshingAroundApiError(
+    throw new PluginApiError(
       `Failed to connect to plugin API: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
 }
 
-export const meshingAroundApi = {
-  /**
-   * Get list of all available plugins.
-   */
+export const pluginApi = {
   async getPlugins(): Promise<PluginInfo[]> {
     return fetchApi<PluginInfo[]>("/api/plugins");
   },
 
-  /**
-   * Get status and configuration for a specific plugin.
-   */
   async getPluginStatus(pluginId: string): Promise<PluginStatus> {
     return fetchApi<PluginStatus>(`/api/plugins/${pluginId}`);
   },
 
-  /**
-   * Update plugin configuration.
-   */
   async updatePlugin(
     pluginId: string,
     config: PluginConfigUpdate,
@@ -106,10 +93,5 @@ export const meshingAroundApi = {
       body: JSON.stringify(config),
     });
   },
-
-  // Note: Bot control removed - this service only manages config files
-  // Run any external service separately if needed
 };
-
-export { MeshingAroundApiError };
 
